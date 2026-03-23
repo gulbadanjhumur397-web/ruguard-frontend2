@@ -134,8 +134,8 @@ function App() {
         <div className="flex-1 overflow-y-auto chat-scrollbar rounded-2xl p-4 glass mb-4 flex flex-col">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center px-4 fade-in">
-              <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center mb-6 shadow-sm border border-card-border">
-                <span className="text-4xl text-black drop-shadow-sm">🛡️</span>
+              <div className="w-24 h-24 rounded-full bg-[#1A1A1A] flex items-center justify-center mb-6 shadow-lg border border-[#333] overflow-hidden group hover:scale-105 transition-transform duration-300">
+                <img src="/logo.png" alt="RugGuard AI Logo" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span class="text-4xl text-black">🛡️</span>'; }} />
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">RugGuard AI</h2>
               <p className="text-slate-400 mb-8 max-w-sm">
@@ -152,8 +152,8 @@ function App() {
               {loading && (
                 <div className="flex w-full mb-4 justify-start">
                   <div className="flex-shrink-0 mr-3 mt-1">
-                    <div className="w-8 h-8 rounded-full bg-[#111111] flex items-center justify-center border border-[#333333] animate-pulse">
-                      <span className="text-sm">🛡️</span>
+                    <div className="w-8 h-8 rounded-full bg-[#1A1A1A] flex items-center justify-center border border-[#333] overflow-hidden animate-pulse">
+                      <img src="/logo.png" alt="Loading" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.parentNode.innerHTML = '<span class="text-sm">🛡️</span>'; }} />
                     </div>
                   </div>
                   <div className="px-5 py-4 rounded-2xl bg-[#111111] border border-card-border rounded-tl-sm w-24">
