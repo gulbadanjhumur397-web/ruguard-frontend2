@@ -4,7 +4,7 @@ import ChatMessage from './components/ChatMessage'
 import ChatInput from './components/ChatInput'
 import SuggestionChips from './components/SuggestionChips'
 
-const API_BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE || 'https://ruguard-production.up.railway.app')
+const API_BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE || 'https://ruguard-production-e5cd.up.railway.app')
 
 function App() {
   const [messages, setMessages] = useState(() => {
