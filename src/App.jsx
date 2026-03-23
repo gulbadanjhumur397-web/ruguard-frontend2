@@ -11,6 +11,13 @@ function App() {
     const saved = localStorage.getItem('ruguard_chat')
     return saved ? JSON.parse(saved) : []
   })
+  const [sessionId] = useState(() => {
+    const saved = localStorage.getItem('ruguard_session')
+    if (saved) return saved
+    const newId = `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+    localStorage.setItem('ruguard_session', newId)
+    return newId
+  })
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef(null)
 
@@ -79,7 +86,7 @@ function App() {
       let response = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
+        body: JSON.stringify({ message: text, session_id: sessionId })
       })
 
       if (response.ok) {
@@ -121,6 +128,8 @@ function App() {
     if (confirm('Clear entire chat history?')) {
       setMessages([])
       localStorage.removeItem('ruguard_chat')
+      localStorage.removeItem('ruguard_session')
+      window.location.reload()
     }
   }
 
