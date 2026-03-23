@@ -26,10 +26,17 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Extract Hedera token IDs from text
+  // Extract Hedera token IDs or EVM addresses from text
   const extractTokenId = (text) => {
-    const match = text.match(/\b(0\.0\.\d+)\b/)
-    return match ? match[1] : null
+    const standardMatch = text.match(/\b(0\.0\.\d+)\b/)
+    if (standardMatch) return standardMatch[1]
+    
+    const evmMatch = text.match(/0x[a-fA-F0-9]{40}\b/)
+    if (evmMatch) {
+      const hexStr = evmMatch[0].replace('0x', '')
+      return `0.0.${parseInt(hexStr, 16)}`
+    }
+    return null
   }
 
   // Format analysis report as markdown
