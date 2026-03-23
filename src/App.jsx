@@ -19,6 +19,54 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // Extract Hedera token IDs from text
+  const extractTokenId = (text) => {
+    const match = text.match(/\b(0\.0\.\d+)\b/)
+    return match ? match[1] : null
+  }
+
+  // Format analysis report as markdown
+  const formatReport = (data) => {
+    const name = data.token_name || data.agent_data?.scanner?.name || 'Unknown'
+    const symbol = data.agent_data?.scanner?.symbol || ''
+    const risk = data.rug_risk_score ?? data.risk_score ?? 'N/A'
+    const level = data.risk_level || 'N/A'
+    const prob = data.predicted_probability ?? data.rug_probability ?? 'N/A'
+    const alert = data.alert_level || 'N/A'
+    const posture = data.security_posture || 'N/A'
+    const confidence = data.confidence ?? 'N/A'
+    const primaryRisk = data.primary_risk || 'None detected'
+    const warning = data.primary_warning || 'No critical warnings'
+
+    let md = `## 🛡️ RugGuard Analysis: **${name}** (${symbol})\n\n`
+    md += `| Metric | Value |\n|---|---|\n`
+    md += `| **Token ID** | \`${data.token_id}\` |\n`
+    md += `| **Risk Score** | **${risk}/100** (${level}) |\n`
+    md += `| **Rug Probability** | **${prob}%** |\n`
+    md += `| **Alert Level** | ${alert} |\n`
+    md += `| **Security Posture** | ${posture} |\n`
+    md += `| **AI Confidence** | ${confidence}% |\n\n`
+    md += `**Primary Risk:** ${primaryRisk}\n\n`
+    md += `**⚠️ Warning:** ${warning}\n\n`
+
+    // Recommendations
+    const recs = data.recommendations || data.agent_data?.alert?.recommendations || []
+    if (recs.length > 0) {
+      md += `### 📋 Recommendations\n`
+      recs.forEach(r => { md += `- ${r}\n` })
+      md += '\n'
+    }
+
+    // Key triggers
+    const triggers = data.key_triggers || data.agent_data?.prediction?.key_triggers || []
+    if (triggers.length > 0) {
+      md += `### 🚨 Key Risk Triggers\n`
+      triggers.forEach(t => { md += `- ${t}\n` })
+    }
+
+    return md
+  }
+
   const handleSend = async (text) => {
     if (!text.trim()) return
 
@@ -27,20 +75,38 @@ function App() {
     setLoading(true)
 
     try {
-      const response = await fetch(`${API_BASE}/chat`, {
+      // Try /chat first
+      let response = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text })
       })
 
-      if (!response.ok) throw new Error(`Server returned ${response.status}`)
-      
-      const data = await response.json()
-      
-      setMessages(prev => [...prev, {
-        role: data.role || 'assistant',
-        content: data.content || data.reply || "Sorry, I couldn't process that request."
-      }])
+      if (response.ok) {
+        const data = await response.json()
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: data.content || data.reply || "Sorry, I couldn't process that request."
+        }])
+        return
+      }
+
+      // Fallback: extract token ID and call /analyze
+      const tokenId = extractTokenId(text)
+      if (tokenId) {
+        response = await fetch(`${API_BASE}/analyze/${tokenId}`)
+        if (!response.ok) throw new Error(`Analysis failed (${response.status})`)
+        const report = await response.json()
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: formatReport(report)
+        }])
+      } else {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: "Please include a Hedera token ID (e.g. `0.0.731861`) in your message so I can analyze it. Example: **Analyze 0.0.731861**"
+        }])
+      }
     } catch (err) {
       setMessages(prev => [...prev, {
         role: 'assistant',
